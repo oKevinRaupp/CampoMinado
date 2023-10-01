@@ -1,5 +1,7 @@
 package modelo;
 
+import excecao.ExplosaoException;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,5 +34,33 @@ public class Campo {
         }else {
             return false;
         }
+    }
+    public void alternarMarcacao(){
+        if(!aberto ){
+            marcado = !marcado;
+        }
+    }
+
+    boolean abrir(){
+        if(!aberto && !marcado){
+            aberto = true;
+            if(minado){
+                throw new ExplosaoException();
+            }
+            if(vizinhancaSegura()){
+                vizinhos.forEach(vizinho -> vizinho.abrir());
+            }
+            return true;
+        }else{
+            return false;
+        }
+    }
+
+   public boolean vizinhancaSegura(){
+        return vizinhos.stream().noneMatch(vizinho -> vizinho.minado);
+    }
+
+    public boolean isMarcado(){
+        return marcado;
     }
 }
