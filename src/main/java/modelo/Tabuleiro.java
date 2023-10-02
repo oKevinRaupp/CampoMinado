@@ -1,13 +1,15 @@
 package modelo;
 
+import excecao.ExplosaoException;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
 
 public class Tabuleiro {
-    private int qtdeLinhas;
-    private int qtdeColunas;
-    private int qtdeMinas;
+    private final int qtdeLinhas;
+    private final int qtdeColunas;
+    private final int qtdeMinas;
 
     private final List<Campo> campos = new ArrayList<>();
 
@@ -22,9 +24,14 @@ public class Tabuleiro {
     }
 
     public void abrir(int linha, int coluna){
-        campos.parallelStream()
-                .filter(campo -> campo.getLinha() == linha && campo.getColuna() == coluna).findFirst()
-                .ifPresent(campo -> campo.abrir());
+        try{
+            campos.parallelStream()
+                    .filter(campo -> campo.getLinha() == linha && campo.getColuna() == coluna).findFirst()
+                    .ifPresent(campo -> campo.abrir());
+        }catch (ExplosaoException e){
+            campos.forEach(campo -> campo.setAberto(true));
+            throw e;
+        }
     }
     public void alternarMarcacao(int linha, int coluna){
         campos.parallelStream()
@@ -52,9 +59,9 @@ public class Tabuleiro {
         Predicate<Campo> minado = campo -> campo.isMinado();
 
         do {
-            minasArmadas = campos.stream().filter(minado).count();
             int aleatorio = (int) (Math.random() * campos.size());
             campos.get(aleatorio).minar();
+            minasArmadas = campos.stream().filter(minado).count();
         } while (minasArmadas < qtdeMinas);
     }
 
@@ -68,8 +75,18 @@ public class Tabuleiro {
 
     public String toString(){
         StringBuilder sb = new StringBuilder();
+        sb.append("  ");
+        for (int c = 0; c < qtdeColunas; c++) {
+            sb.append(" ");
+            sb.append(c);
+            sb.append(" ");
+        }
+        sb.append("\n");
+
         int i = 0;
         for (int l = 0; l <qtdeLinhas ; l++) {
+            sb.append(l);
+            sb.append(" ");
             for (int c = 0; c < qtdeColunas; c++) {
                 sb.append(" ");
                 sb.append(campos.get(i));
